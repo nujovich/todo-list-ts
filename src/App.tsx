@@ -1,48 +1,27 @@
 import { useState } from 'react'
 import { Todos } from './components/Todos'
-import { type Todo as TodoType, type TodoId, type FilterValue } from './types/types'
+import { type Todo as TodoType, type TodoId, type FilterValue, type TableTodo } from './types/types'
 import { TODO_FILTERS } from './types/consts'
 import { Footer } from './components/Footer'
 import { Header } from './components/Header'
+import { addTask, deleteTask, getTasks, updateTask } from './services/tasksService'
 
-const todos = [
-  {
-    id: 1,
-    text: 'Ver el twitch de midudev',
-    completed: true
-  },
-  {
-    id: 2,
-    text: 'Aprender React',
-    completed: false
-  },
-  {
-    id: 3,
-    text: 'Sacar ticket de la midufest',
-    completed: false
-  }
-]
+const todos = await getTasks().then((data) => data)
 
 const App = (): JSX.Element => {
-  const [todoList, setTodoList] = useState(todos)
+  const [todoList, setTodoList] = useState<TableTodo | undefined>(todos)
   const [filterSelected, setFilterSelected] = useState<FilterValue>(TODO_FILTERS.ALL)
 
-  const handleRemove = ({ id }: TodoId): void => {
-    const newTodos = todoList.filter((todo) => todo.id !== id)
+  const handleRemove = async ({ id }: TodoId): Promise<void> => {
+    await deleteTask(id).then((data) => data)
+    const newTodos = await getTasks().then((data) => data)
     setTodoList(newTodos)
   }
 
-  const handleCompleted = ({ id, completed }: Pick<TodoType, 'id' | 'completed'>): void => {
-    const newTodos = todoList.map((todo) => {
-      if (todo.id === id) {
-        return {
-          ...todo,
-          completed
-        }
-      }
-      return todo
-    })
-    setTodoList(newTodos)
+  const handleCompleted = async ({ id, completed }: Pick<TodoType, 'id' | 'completed'>): Promise<void> => {
+    await updateTask(id, completed)
+    const todos = await getTasks().then((data) => data)
+    setTodoList(todos)
   }
 
   const handleFilterChanged = (filter: FilterValue): void => {
@@ -50,21 +29,21 @@ const App = (): JSX.Element => {
   }
 
   const handleClearCompleted = (): void => {
-    const newTodos = todoList.filter((todo) => !todo.completed)
+    const newTodos = todoList?.filter((todo) => !todo.completed)
     setTodoList(newTodos)
   }
 
-  const handleAdd = (text: string): void => {
+  const handleAdd = async (text: string): Promise<void> => {
     const newTodo = {
-      id: todoList.length + 1,
       text,
       completed: false
     }
-    const newTodos = [...todoList, newTodo]
-    setTodoList(newTodos)
+    await addTask(newTodo.text)
+    const todos = await getTasks().then((data) => data)
+    setTodoList(todos)
   }
 
-  const filteredTodos = todoList.filter((todo) => {
+  const filteredTodos = todoList?.filter((todo) => {
     if (filterSelected === TODO_FILTERS.ACTIVE) {
       return !todo.completed
     }
@@ -82,7 +61,7 @@ const App = (): JSX.Element => {
         todos={filteredTodos}
       />
       <Footer
-        activeCounts={filteredTodos.filter((todo) => !todo.completed).length}
+        activeCounts={filteredTodos?.filter((todo) => !todo.completed).length}
         completedCount={filteredTodos.length - filteredTodos.filter((todo) => !todo.completed).length}
         filterSelected={filterSelected}
         onClearCompleted={handleClearCompleted}

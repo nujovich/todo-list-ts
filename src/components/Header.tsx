@@ -2,7 +2,7 @@
 import { CreateTodo } from './CreateTodo'
 
 interface HeaderProps {
-  onAdd: (text: string) => void
+  onAdd: (text: string) => Promise<void>
 }
 
 export const Header: React.FC<HeaderProps> = ({ onAdd }) => {

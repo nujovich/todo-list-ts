@@ -2,8 +2,8 @@ import { type FilterValue } from '../types/types'
 import { Filters } from './Filters'
 
 interface FooterProps {
-  activeCounts: number
-  completedCount: number
+  activeCounts: number | undefined
+  completedCount: number | undefined
   filterSelected: FilterValue
   handleFilterChanged: (filter: FilterValue) => void
   onClearCompleted: () => void
